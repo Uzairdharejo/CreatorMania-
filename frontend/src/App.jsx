@@ -262,3 +262,198 @@ function TrendingTab({ onSave, savedUrls }) {
   };
 
   return (
+‎<div style={{ maxWidth:860 }}>
+‎      <h2 style={{ color:"#fff", fontSize:26, fontWeight:800, margin:"0 0 6px", letterSpacing:-0.5 }}>Trending Content Feed</h2>
+‎      <p style={{ color:"#6b7280", fontSize:14, marginBottom:24, lineHeight:1.6 }}>Auto-fetched trending videos scored by viral potential. Click any to get a full breakdown.</p>
+‎<div style={{ background:"#0d0d1a", borderRadius:14, padding:20, border:"1px solid #1a1a2e", marginBottom:24 }}>
+‎        <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+‎{["YouTube","TikTok","Instagram"].map(p => (
+‎            <button key={p} style={{ padding:"7px 16px", borderRadius:8, border:`1px solid ${platform===p ? platformColor(p)+"66" : "#2a2a3e"}`, background: platform===p ? platformColor(p)+"18" : "transparent", color: platform===p ? platformColor(p) : "#6b7280", fontSize:13, fontWeight:700, cursor:"pointer" }}
+‎              onClick={() => setPlatform(p)}>{platformIcon(p)} {p}</button>))}</div>
+‎<div style={{ display:"flex", gap:10, marginBottom:12 }}>
+‎          <input style={{ flex:1, padding:"11px 16px", borderRadius:10, border:"1px solid #2a2a3e", background:"#111128", color:"#fff", fontSize:14 }}
+‎            placeholder="Enter your niche (e.g. fitness, tech, food)..." value={niche} onChange={e => setNiche(e.target.value)} />
+‎<button style={{ padding:"11px 24px", borderRadius:10, border:"none", background:"linear-gradient(90deg,#f59e0b,#ef4444)", color:"#fff", fontSize:14, fontWeight:800, cursor:"pointer" }}
+‎            onClick={fetchTrending} disabled={loading}>{loading ? "Fetching..." : "Get Trending →"}</button></div>
+‎<div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+‎          {niches.map(n => (
+‎            <button key={n} style={{ padding:"5px 12px", borderRadius:20, border:`1px solid ${niche===n?"#f59e0b66":"#2a2a3e"}`, background: niche===n?"#f59e0b18":"transparent", color: niche===n?"#f59e0b":"#6b7280", fontSize:12, fontWeight:600, cursor:"pointer" }}
+‎              onClick={() =>
+‎setNiche(n)}>{n}</button>
+‎          ))}
+‎        </div>
+‎      </div>
+‎
+‎      {loading && (
+‎        <div style={{ textAlign:"center", padding:"52px 0" }}>
+‎          <div style={{ width:40, height:40, borderRadius:"50%", border:"3px solid #1a1a2e", borderTop:"3px solid #f59e0b", animation:"spin 0.8s linear infinite", margin:"0 auto 16px" }} />
+‎<p style={{ color:"#e5e7eb", fontSize:15, fontWeight:700, margin:0 }}>Scanning trending content...</p>
+‎        </div>
+‎      )}
+‎
+‎      {items.length > 0 && (
+‎        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:12, marginBottom:28 }}>
+‎          {items.map((item, i) => (
+‎            <div key={i}
+‎style={{ background:"#0d0d1a", borderRadius:12, padding:16, border:"1px solid #1a1a2e", cursor:"pointer" }} onClick={() => analyzeItem(item)}>
+‎              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+‎                <span style={{ background:platformColor(platform)+"22", color:platformColor(platform), fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:12 }}>{platformIcon(platform)} {platform}</span>
+‎<span style={{ color:"#374151", fontSize:12, fontWeight:700 }}>#{i+1}</span>
+‎              </div>
+‎              <p style={{ color:"#e5e7eb", fontSize:14, fontWeight:600, lineHeight:1.5, margin:"0 0 12px" }}>{item.title}</p>
+‎              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
+‎                <span style={{ color:"#6b7280", fontSize:12 }}>{item.views}</span>
+‎<span style={{ color: item.viralScore > 80 ? "#f59e0b" : item.viralScore > 60 ? "#10b981" : "#6b7280", fontSize:13, fontWeight:700 }}>🔥 {item.viralScore}</span>
+‎              </div>
+‎              <button style={{ width:"100%", padding:8, borderRadius:8, border:"1px solid #2a2a3e", background:"transparent", color:"#f59e0b", fontSize:12, fontWeight:700, cursor:"pointer" }}
+‎                disabled={analyzing === item.url}>{analyzing === item.url ? "Analyzing..." : "Deep Analyze →"}</button>
+‎            </div>))}
+‎        </div>
+‎      )}
+‎{selected && <AnalysisCard data={selected} onSave={onSave} saved={savedUrls.includes(selected.url)} />}
+‎    </div>
+‎  );
+‎}
+
+‎‎function LibraryTab() {
+‎  const [items, setItems] = useState([]);
+‎  const [loading, setLoading] = useState(true);
+‎  const [search, setSearch] = useState("");
+‎  const [expanded, setExpanded] = useState(null);
+‎
+‎  const load = async () => {
+‎    setLoading(true);
+‎    try {
+‎      const res = await fetch(`${API}/research?search=${encodeURIComponent(search)}`, { headers:authHeaders() });
+‎      const data = await res.json();
+‎setItems(Array.isArray(data) ? data : []);
+‎    } catch(e) { console.error(e); }
+‎    finally { setLoading(false); }
+‎  };
+‎
+‎  const remove = async (id) => {
+‎    await fetch(`${API}/research/${id}`, { method:"DELETE", headers:authHeaders() });
+‎    setItems(items.filter(i => i._id !== id));
+‎  };
+‎
+‎  useEffect(() => { load(); }, []);
+‎  useEffect(() => { const t = setTimeout(load, 400); return () => clearTimeout(t); }, [search]);
+‎return (
+‎    <div style={{ maxWidth:860 }}>
+‎      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12, marginBottom:8 }}>
+‎        <div>
+‎          <h2 style={{ color:"#fff", fontSize:26, fontWeight:800, margin:"0 0 6px", letterSpacing:-0.5 }}>Research Library</h2>
+‎          <p style={{ color:"#6b7280", fontSize:14, margin:0 }}>All your saved viral analyses. Unlimited & free forever.</p>
+‎</div>
+‎<span style={{ background:"#f59e0b22", color:"#f59e0b", border:"1px solid #f59e0b44", fontSize:13, fontWeight:700, padding:"6px 16px", borderRadius:20 }}>{items.length} saved</span>
+‎      </div>
+‎
+‎      <input style={{ width:"100%", padding:"11px 16px", borderRadius:10, border:"1px solid #2a2a3e", background:"#0d0d1a", color:"#fff", fontSize:14, margin:"20px 0" }}
+‎        placeholder="🔍 Search your saved analyses..." value={search} onChange={e => setSearch(e.target.value)} />
+‎{loading && <div style={{ textAlign:"center", padding:"40px 0" }}><div style={{ width:32, height:32, borderRadius:"50%", border:"3px solid #1a1a2e", borderTop:"3px solid #f59e0b", animation:"spin 0.8s linear infinite", margin:"0 auto" }} /></div>}
+‎
+‎      {!loading && items.length === 0 && (
+‎        <div style={{ textAlign:"center", padding:"60px 0" }}>
+‎          <div style={{ fontSize:48, marginBottom:12 }}>📂</div>
+‎<p style={{ color:"#e5e7eb", fontSize:16, fontWeight:700, margin:"0 0 8px" }}>No saved analyses yet</p>
+‎          <p style={{ color:"#6b7280", fontSize:14, margin:0 }}>Analyze viral content and hit Save to build your library</p>
+‎        </div>
+‎      )}
+‎
+‎      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+‎{items.map(item => (
+‎          <div key={item._id} style={{ background:"#0d0d1a", borderRadius:12, border:"1px solid #1a1a2e", overflow:"hidden" }}>
+‎            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", cursor:"pointer" }} onClick={() => setExpanded(expanded===item._id ? null : item._id)}>
+‎              <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
+‎{items.map(item => (
+‎          <div key={item._id} style={{ background:"#0d0d1a", borderRadius:12, border:"1px solid #1a1a2e", overflow:"hidden" }}>
+‎            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", cursor:"pointer" }} onClick={() => setExpanded(expanded===item._id ? null : item._id)}>
+‎              <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
+‎<span style={{ background:platformColor(item.platform)+"22", color:platformColor(item.platform), fontSize:11, fontWeight:700, padding:"3px 8px", borderRadius:12, flexShrink:0 }}>{platformIcon(item.platform)} {item.platform}</span>
+‎                <span style={{ color:"#d1d5db", fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.url || item.title}</span>
+‎              </div>
+‎<div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+‎                <span style={{ background:"#f59e0b22", color:"#f59e0b", fontSize:12, fontWeight:700, padding:"2px 8px", borderRadius:12 }}>🔥 {item.viralScore}</span>
+‎                <span style={{ color:"#6b7280", fontSize:10 }}>{expanded===item._id ? "▲" : "▼"}</span>
+‎<button style={{ background:"transparent", border:"none", color:"#374151", fontSize:14, cursor:"pointer", padding:"2px 4px" }} onClick={e => { e.stopPropagation(); remove(item._id); }}>✕</button>
+‎              </div>
+‎            </div>
+‎            {expanded === item._id && (
+‎              <div style={{ borderTop:"1px solid #1a1a2e" }}>
+‎
+‎<AnalysisCard data={item} onSave={() => {}} saved={true} />
+‎              </div>
+‎            )}
+‎          </div>
+‎        ))}
+‎      </div>
+‎    </div>
+‎  );
+‎}
+‎‎function Dashboard({ user, onLogout }) {
+‎  const [tab, setTab] = useState("analyzer");
+‎  const [savedUrls, setSavedUrls] = useState([]);
+‎
+‎  const saveAnalysis = async (data) => {
+‎    try {
+‎      await fetch(`${API}/research`, { method:"POST", headers:authHeaders(), body:JSON.stringify(data) });
+‎      setSavedUrls(u => [...u, data.url]);
+‎    } catch(e) { console.error(e); }
+‎  };
+‎const tabs = [
+‎    { key:"analyzer", label:"🔬 Analyzer" },
+‎    { key:"trending",  label:"🔥 Trending"  },
+‎    { key:"library",   label:"💾 Library"   },
+‎  ];
+‎
+‎  return (
+‎    <div style={{ display:"flex", minHeight:"100vh", background:"#070711" }}>
+‎      <div style={{ width:220, background:"#0d0d1a", borderRight:"1px solid #1a1a2e", display:"flex", flexDirection:"column", flexShrink:0 }}>
+‎<div style={{ color:"#f59e0b", fontWeight:800, fontSize:16, padding:"24px 20px", borderBottom:"1px solid #1a1a2e" }}>⚡ CreatorMania</div>
+‎        <div style={{ flex:1, padding:"16px 12px", display:"flex", flexDirection:"column", gap:4 }}>
+‎{tabs.map(t => (
+‎            <button key={t.key} style={{ padding:"10px 12px", borderRadius:8, border:"none", background: tab===t.key?"#1e1e38":"transparent", color: tab===t.key?"#f59e0b":"#6b7280", fontSize:14, fontWeight:700, cursor:"pointer", textAlign:"left" }}
+‎              onClick={() => setTab(t.key)}>{t.label}</button>
+‎          ))}
+‎        </div>
+‎<div style={{ padding:"16px 12px", borderTop:"1px solid #1a1a2e" }}>
+‎          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+‎            <div style={{ width:36, height:36, borderRadius:"50%", background:"linear-gradient(135deg,#f59e0b,#ef4444)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:14, flexShrink:0 }}>
+‎{user.name[0].toUpperCase()}
+‎            </div>
+‎            <div>
+‎              <p style={{ color:"#e5e7eb", fontSize:13, fontWeight:700, margin:0 }}>{user.name}</p>
+‎              <p style={{ color:"#374151", fontSize:11, margin:0 }}>Free · Unlimited</p>
+‎            </div>
+‎          </div>
+‎          <button style={{ width:"100%", padding:"8px", borderRadius:8, border:"1px solid #1a1a2e", background:"transparent", color:"#6b7280", fontSize:12, cursor:"pointer" }}
+‎onClick={onLogout}>Log out</button>
+‎        </div>
+‎      </div>
+‎
+‎      <div style={{ flex:1, overflowY:"auto", padding:"36px 40px" }}>
+‎        {tab === "analyzer" && <AnalyzerTab onSave={saveAnalysis} savedUrls={savedUrls} />}
+‎        {tab === "trending" && <TrendingTab onSave={saveAnalysis} savedUrls={savedUrls} />}
+‎        {tab === "library" && <LibraryTab />}
+‎      </div>
+‎    </div>
+‎  );
+‎}
+‎export default function App() {
+‎  const [phase, setPhase] = useState("splash");
+‎  const [user, setUser] = useState(null);
+‎
+‎  useEffect(() => {
+‎    const t = localStorage.getItem("cm_token");
+‎    const u = localStorage.getItem("cm_user");
+‎    if (t && u) setUser(JSON.parse(u));
+‎  }, []);
+‎const handleAuth = (u) => { setUser(u); setPhase("dashboard"); };
+‎  const handleLogout = () => { localStorage.clear(); setUser(null); setPhase("auth"); };
+‎
+‎  if (phase === "splash") return <Splash onDone={() => setPhase(user ? "dashboard" : "auth")} />;
+‎  if (phase === "auth") return <Auth onAuth={handleAuth} />;
+‎  return <Dashboard user={user} onLogout={handleLogout} />;
+‎}
+‎
+‎
